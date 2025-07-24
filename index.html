@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>WebApp Flashcard Doa Umrah</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f4ff;
+    margin: 0; padding: 0;
+    display: flex; flex-direction: column;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+  }
+  header {
+    background-color: #0047ab;
+    color: white;
+    width: 100%;
+    padding: 12px 0;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    width: 100%;
+    max-width: 360px;
+  }
+  .flashcard-container {
+    perspective: 1200px;
+    width: 320px;
+    height: 220px;
+  }
+  .flashcard {
+    width: 100%;
+    height: 100%;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+    cursor: pointer;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  .flashcard.flipped {
+    transform: rotateY(180deg);
+  }
+  .flashcard-front, .flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    padding: 15px;
+  }
+  .flashcard-front {
+    background-color: #0047ab;
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 600;
+    direction: rtl;
+  }
+  .flashcard-front .arabic {
+    font-size: 1.7rem;
+    margin-bottom: 10px;
+  }
+  .flashcard-back {
+    background-color: #e8f0ff;
+    color: #222;
+    transform: rotateY(180deg);
+    font-size: 1.1rem;
+  }
+  .flashcard-back .rumi {
+    font-style: italic;
+    margin-bottom: 12px;
+  }
+  .flashcard-back .meaning {
+    font-weight: 600;
+  }
+  .controls {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+  }
+  button {
+    background-color: #0047ab;
+    border: none;
+    color: white;
+    padding: 10px 22px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  button:disabled {
+    background-color: #7f9ccf;
+    cursor: not-allowed;
+  }
+  button:hover:not(:disabled) {
+    background-color: #003380;
+  }
+  footer {
+    text-align: center;
+    padding: 12px 8px;
+    font-size: 0.9rem;
+    color: #555;
+  }
+</style>
+</head>
+<body>
+
+<header>Flashcard Doa Umrah</header>
+
+<main>
+  <div class="flashcard-container" tabindex="0" aria-label="Flashcard Doa Umrah" role="button">
+    <div class="flashcard" id="flashcard">
+      <div class="flashcard-front">
+        <div class="arabic" id="arabic-text"></div>
+        <div id="title-text"></div>
+      </div>
+      <div class="flashcard-back">
+        <div class="rumi" id="rumi-text"></div>
+        <div class="meaning" id="meaning-text"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="controls" role="group" aria-label="Navigasi flashcard">
+  <button id="prev-btn" aria-label="Kad sebelumnya">⟨ Sebelum</button>
+  <button id="flip-btn" aria-label="Balik kad">Balik</button>
+  <button id="next-btn" aria-label="Kad seterusnya">Seterusnya ⟩</button>
+</div>
+
+<footer>
+  &copy; 2025 - Buat oleh ChatGPT untuk anda
+</footer>
+
+<script>
+  const flashcards = [
+    {
+      title: "Niat Umrah (Miqat)",
+      arabic: "نَوَيْتُ الْعُمْرَةَ وَأَحْرَمْتُ بِهَا لِلَّهِ تَعَالَى",
+      rumi: "Nawaitul ‘umrata wa ahramtu biha lillahi ta‘ala.",
+      meaning: "Aku berniat umrah dan berihram dengannya kerana Allah Ta‘ala."
+    },
+    {
+      title: "Talbiah",
+      arabic: "لَبَّيْكَ اللَّهُمَّ لَبَّيْكَ، لَبَّيْكَ لَا شَرِيكَ لَكَ لَبَّيْكَ",
+      rumi: "Labbaika Allahumma labbaik, labbaika laa syarika laka labbaik...",
+      meaning: "Aku sahut seruan-Mu ya Allah, tiada sekutu bagi-Mu..."
+    },
+    {
+      title: "Doa Hajar Aswad",
+      arabic: "بِسْمِ اللَّهِ، اللَّهُ أَكْبَرُ",
+      rumi: "Bismillah, Allahu Akbar",
+      meaning: "Dengan nama Allah, Allah Maha Besar"
+    },
+    {
+      title: "Doa Tawaf Antara Yamani & Hajar Aswad",
+      arabic: "رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً، وَفِي الْآخِرَةِ حَسَنَةً، وَقِنَا عَذَابَ النَّارِ",
+      rumi: "Rabbana atina fid-dunya hasanah, wa fil-akhirati hasanah...",
+      meaning: "Ya Allah, berikan kami kebaikan di dunia dan akhirat..."
+    },
+    {
+      title: "Doa di Bukit Safa",
+      arabic: "إِنَّ الصَّفَا وَالْمَرْوَةَ مِنْ شَعَائِرِ اللَّهِ",
+      rumi: "Inna as-safa wal marwata min sha’a’irillah",
+      meaning: "Sesungguhnya Safa dan Marwah adalah antara syiar Allah..."
+    },
+    {
+      title: "Zikir Ketika Sa’i",
+      arabic: "سبحان الله الحمد لله لا إله إلا الله الله أكبر لا حول ولا قوة إلا بالله",
+      rumi: "Subhanallah, Alhamdulillah, La ilaha illallah, Allahu Akbar, La hawla wala quwwata illa billah",
+      meaning: "Maha Suci Allah, Segala puji bagi Allah, Tiada Tuhan selain Allah, Allah Maha Besar, Tiada daya & kekuatan kecuali dengan izin Allah"
+    },
+    {
+      title: "Doa Tamat Umrah (Selepas Bercukur)",
+      arabic: "اللَّهُمَّ تَقَبَّلْ مِنِّي وَاغْفِرْ لِي",
+      rumi: "Allahumma taqabbal minni waghfir li",
+      meaning: "Ya Allah, terimalah amalanku dan ampunilah dosaku."
+    },
+    {
+      title: "Doa Masuk Masjidil Haram",
+      arabic: "اللَّهُمَّ افْتَحْ لِي أَبْوَابَ رَحْمَتِكَ",
+      rumi: "Allahumma iftah li abwaba rahmatik",
+      meaning: "Ya Allah, bukakanlah untukku pintu-pintu rahmat-Mu."
+    }
+  ];
+
+  let currentIndex = 0;
+  const flashcard = document.getElementById('flashcard');
+  const arabicText = document.getElementById('arabic-text');
+  const rumiText = document.getElementById('rumi-text');
+  const meaningText = document.getElementById('meaning-text');
+  const titleText = document.getElementById('title-text');
+
+  const prevBtn = document.getElementById('prev-btn');
+  const flipBtn = document.getElementById('flip-btn');
+  const nextBtn = document.getElementById('next-btn');
+
+  function renderFlashcard(index) {
+    const card = flashcards[index];
+    arabicText.textContent = card.arabic;
+    rumiText.textContent = card.rumi;
+    meaningText.textContent = card.meaning;
+    titleText.textContent = card.title;
+    flashcard.classList.remove('flipped');
+    prevBtn.disabled = index === 0;
+    nextBtn.disabled = index === flashcards.length - 1;
+  }
+
+  prevBtn.addEventListener('click', () => {
+    if(currentIndex > 0) {
+      currentIndex--;
+      renderFlashcard(currentIndex);
+    }
+  });
+
+  nextBtn.addEventListener('click', () => {
+    if(currentIndex < flashcards.length -1) {
+      currentIndex++;
+      renderFlashcard(currentIndex);
+    }
+  });
+
+  flipBtn.addEventListener('click', () => {
+    flashcard.classList.toggle('flipped');
+  });
+
+  flashcard.addEventListener('click', () => {
+    flashcard.classList.toggle('flipped');
+  });
+
+  flashcard.addEventListener('keydown', (e) => {
+    if(e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      flashcard.classList.toggle('flipped');
+    }
+  });
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if(e.target.tagName.toLowerCase() === 'input' || e.target.tagName.toLowerCase() === 'textarea') return;
+    if(e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') {
+      if(currentIndex < flashcards.length -1) {
+        currentIndex++;
+        renderFlashcard(currentIndex);
+      }
+    } else if(e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') {
+      if(currentIndex > 0) {
+        currentIndex--;
+        renderFlashcard(currentIndex);
+      }
+    } else if(e.key === 'f' || e.key === ' ') {
+      flashcard.classList.toggle('flipped');
+    }
+  });
+
+  // Init
+  renderFlashcard(currentIndex);
+</script>
+
+</body>
+</html>
